@@ -62,7 +62,7 @@ func main() {
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
 
-	log.Println("Shutting down server...")
+	log.Info("Shutting down server...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -70,6 +70,6 @@ func main() {
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Errorf("Server forced to shutdown: %v", err)
 	} else {
-		log.Println("Server exiting")
+		log.Info("Server exiting")
 	}
 }

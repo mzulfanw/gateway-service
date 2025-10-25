@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/mzulfanw/gateway-service/internal/response"
 )
 
 type Proxy struct {
@@ -24,7 +26,7 @@ func NewProxy(productServiceUrl, orderServiceUrl string) *Proxy {
 func (p *Proxy) ProxyWithContext(w http.ResponseWriter, r *http.Request, targetUrl string) {
 	req, err := http.NewRequestWithContext(r.Context(), r.Method, targetUrl, r.Body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -40,7 +42,7 @@ func (p *Proxy) ProxyWithContext(w http.ResponseWriter, r *http.Request, targetU
 		time.Sleep(2 * time.Second)
 	}
 	if err != nil {
-		http.Error(w, "Service unavailable", http.StatusServiceUnavailable)
+		response.ErrorResponse(w, http.StatusServiceUnavailable, "Service unavailable")
 		return
 	}
 	defer resp.Body.Close()

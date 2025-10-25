@@ -5,6 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/mzulfanw/gateway-service/internal/proxy"
+	"github.com/mzulfanw/gateway-service/internal/response"
 )
 
 type ProductHandler struct {
@@ -23,8 +24,7 @@ func (h *ProductHandler) GetProductDetail(w http.ResponseWriter, r *http.Request
 	vars := mux.Vars(r)
 	productID, ok := vars["id"]
 	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`{"error": "Product ID is required"}`))
+		response.ErrorResponse(w, http.StatusBadRequest, "Product ID is required")
 		return
 	}
 
