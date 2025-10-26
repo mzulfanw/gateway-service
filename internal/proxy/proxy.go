@@ -9,10 +9,14 @@ import (
 	"github.com/mzulfanw/gateway-service/internal/response"
 )
 
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 type Proxy struct {
 	ProductServiceUrl string
 	OrderServiceUrl   string
-	client            *http.Client
+	client            HTTPClient
 }
 
 func NewProxy(productServiceUrl, orderServiceUrl string) *Proxy {

@@ -27,7 +27,7 @@ The gateway uses HTTP to receive client requests and forwards them to internal s
 
 4. Run the gateway service:
    ```bash
-   go run main.go
+   go run cmd/main.go
    ```
    
 The gateway will start on `http://localhost:3000`.
@@ -46,4 +46,7 @@ You can use k6 to perform load testing on the gateway service. An example test s
     ```bash
    k6 run k6-orders.js
    ```
+   
+## Postman Collection
+A Postman collection is available to test the API endpoints. You can download the collection postman_collection.json and postman_environment.json files from the repository and import them into Postman.
 
