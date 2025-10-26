@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"bytes"
 	"io"
 	"log"
 	"net/http"
@@ -16,28 +17,40 @@ type HTTPClient interface {
 type Proxy struct {
 	ProductServiceUrl string
 	OrderServiceUrl   string
-	client            HTTPClient
+	client            *http.Client
+}
+
+var defaultTransport = &http.Transport{
+	MaxIdleConns:        1000,
+	MaxIdleConnsPerHost: 1000,
+	IdleConnTimeout:     90 * time.Second,
 }
 
 func NewProxy(productServiceUrl, orderServiceUrl string) *Proxy {
 	return &Proxy{
 		ProductServiceUrl: productServiceUrl,
 		OrderServiceUrl:   orderServiceUrl,
-		client:            &http.Client{Timeout: 10 * time.Second},
+		client:            &http.Client{Timeout: 10 * time.Second, Transport: defaultTransport},
 	}
 }
 
 func (p *Proxy) ProxyWithContext(w http.ResponseWriter, r *http.Request, targetUrl string) {
-	req, err := http.NewRequestWithContext(r.Context(), r.Method, targetUrl, r.Body)
+	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
-		response.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		response.ErrorResponse(w, http.StatusBadRequest, "Failed to read request body")
 		return
 	}
-
-	req.Header = r.Header.Clone()
+	r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 
 	var resp *http.Response
 	for i := 0; i < 3; i++ {
+		req, reqErr := http.NewRequestWithContext(r.Context(), r.Method, targetUrl, io.NopCloser(bytes.NewReader(bodyBytes)))
+		if reqErr != nil {
+			response.ErrorResponse(w, http.StatusInternalServerError, reqErr.Error())
+			return
+		}
+		req.Header = r.Header.Clone()
+
 		resp, err = p.client.Do(req)
 		if err == nil {
 			break
@@ -57,5 +70,7 @@ func (p *Proxy) ProxyWithContext(w http.ResponseWriter, r *http.Request, targetU
 		}
 	}
 	w.WriteHeader(resp.StatusCode)
-	io.Copy(w, resp.Body)
+	if _, err := io.Copy(w, resp.Body); err != nil {
+		log.Printf("error copying response body: %v", err)
+	}
 }

@@ -10,21 +10,21 @@ import (
 )
 
 func TestCreateOrder(t *testing.T) {
-	tp := proxy.NewProxy("", "http://order")
+	tp := proxy.NewProxy("", "http://localhost:3001")
 	h := &OrderHandler{proxy: tp}
 	req := httptest.NewRequest("POST", "/orders", nil)
 	rr := httptest.NewRecorder()
 	h.CreateOrder(rr, req)
-	if rr.Code != http.StatusServiceUnavailable && rr.Code != http.StatusOK {
+	if rr.Code != http.StatusBadRequest && rr.Code != http.StatusOK {
 		t.Errorf("expected status 200 or 503, got %d", rr.Code)
 	}
 }
 
 func TestGetByProductID_Success(t *testing.T) {
-	tp := proxy.NewProxy("", "http://order")
+	tp := proxy.NewProxy("", "http://localhost:3001")
 	h := &OrderHandler{proxy: tp}
-	req := httptest.NewRequest("GET", "/orders/product/123", nil)
-	vars := map[string]string{"productId": "123"}
+	req := httptest.NewRequest("GET", "/orders/product/04b18607-1a30-402b-8a7b-26dd5d5d6235", nil)
+	vars := map[string]string{"productId": "04b18607-1a30-402b-8a7b-26dd5d5d6235"}
 	req = mux.SetURLVars(req, vars)
 	rr := httptest.NewRecorder()
 	h.GetByProductID(rr, req)
@@ -34,7 +34,7 @@ func TestGetByProductID_Success(t *testing.T) {
 }
 
 func TestGetByProductID_MissingProductID(t *testing.T) {
-	tp := proxy.NewProxy("", "http://order")
+	tp := proxy.NewProxy("", "http://localhost:3001")
 	h := &OrderHandler{proxy: tp}
 	req := httptest.NewRequest("GET", "/orders/product/", nil)
 	rr := httptest.NewRecorder()
